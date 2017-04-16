@@ -175,7 +175,7 @@ func ServerAddress(privaterepo string)string{
 		serveraddress = ("http://" + privaterepo + "v1")
 
 	}else{
-		serveraddress = ("https://index.docker.io/v1/	")
+		serveraddress = ("https://index.docker.io/v1/")
 	}
 	return serveraddress
 
