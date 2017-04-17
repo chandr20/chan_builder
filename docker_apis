@@ -1,0 +1,10 @@
+export Image_name=chandr20/dockertest
+export Username=chandr20
+export Password=****
+export Dockerfile='FROM chandr20/dockertest'
+ 
+XRA=echo "{ \"username\": \"chandr20\", \"password\": \"****\", \"email\": \"chandr20@gmail.com\" }" | base64 --wrap=0
+curl -X POST -d "" -H "X-Registry-Auth: $XRA" http://localhost:2375/images/create?fromImage=chandr20/dockertest:v1
+
+ 
+ 
