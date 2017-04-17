@@ -12,9 +12,9 @@ import (
 	"os"
 	"strings"
 
-	"net/http/httputil"
-	"encoding/json"
 	"encoding/base64"
+	"encoding/json"
+	"net/http/httputil"
 )
 
 type PassedParams struct {
@@ -32,6 +32,12 @@ type PushAuth struct {
 	Email         string `json:"email"`
 }
 
+type Auth struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
+	Email    string `json:"email"`
+}
+
 func main() {
 
 	passedparams := PassedParams{}
@@ -43,7 +49,7 @@ func main() {
 	BuildPushDeleteImage(passedparams)
 }
 
-func Buildparams(passedparams *PassedParams)*PassedParams{
+func Buildparams(passedparams *PassedParams) *PassedParams {
 
 	Image_name := os.Getenv("Image_name")
 	Username := os.Getenv("Username")
@@ -58,7 +64,7 @@ func Buildparams(passedparams *PassedParams)*PassedParams{
 		Email:      Email,
 		Dockerfile: Dockerfile,
 	}
-        return passedparams
+	return passedparams
 
 }
 
@@ -80,16 +86,16 @@ func BuildPushDeleteImage(passedParams PassedParams) {
 	if err != nil {
 		log.Println(err)
 	}
-	fmt.Println(buildUrl,readerForInput)
-	buildreq,err := http.NewRequest("POST",buildUrl,readerForInput)
+	fmt.Println(buildUrl, readerForInput)
+	buildreq, err := http.NewRequest("POST", buildUrl, readerForInput)
 	fmt.Println(StringEncAuth(passedParams, ServerAddress(splitImageName[0])))
 
-	buildreq.Header.Add("X-Registry-Auth", StringEncAuth(passedParams, ServerAddress(splitImageName[0])))
-	buildresponse,err := dockerConnection.Do(buildreq)
+	buildreq.Header.Add("X-Registry-Config", StringEncAuth(passedParams, ServerAddress(splitImageName[0])))
+	buildresponse, err := dockerConnection.Do(buildreq)
 	fmt.Println(buildresponse.Status)
 	fmt.Println(buildresponse.Body)
 	defer buildresponse.Body.Close()
-	if err!=nil {
+	if err != nil {
 		log.Println(err)
 	}
 
@@ -166,29 +172,29 @@ func ReaderForDockerfile(dockerfile string) *bytes.Buffer {
 	return buf
 }
 
-
-func ServerAddress(privaterepo string)string{
+func ServerAddress(privaterepo string) string {
 	var serveraddress string
 
-	if privaterepo != ""{
+	if privaterepo != "" {
 
 		serveraddress = ("http://" + privaterepo + "v1")
 
-	}else{
+	} else {
 		serveraddress = ("https://index.docker.io/v1/")
 	}
 	return serveraddress
 
 }
 
-func StringEncAuth(passedparams PassedParams,serveraddress string)string{
-	var data PushAuth
+func StringEncAuth(passedparams PassedParams, serveraddress string) string {
+	var data Auth
 	data.Username = passedparams.Username
 	data.Password = passedparams.Password
 	data.Email = passedparams.Email
-	data.Serveraddress = serveraddress
-	json_data,err := json.Marshal(data)
-	if err != nil{
+	config := make(map[string]Auth)
+	config[serveraddress] = data
+	json_data, err := json.Marshal(config)
+	if err != nil {
 		log.Println(err)
 	}
 	sEnc := base64.StdEncoding.EncodeToString([]byte(json_data))
